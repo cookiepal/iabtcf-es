@@ -1,4 +1,4 @@
-import {IdBoolTuple, PurposeRestriction, PurposeRestrictionVector, RestrictionType, Vector} from '@iabtechlabtcf/core';
+import {IdBoolTuple, PurposeRestriction, PurposeRestrictionVector, RestrictionType, Vector} from '@cookiepal-labs/iabtcf-core';
 import {Restrictions} from './Restrictions.js';
 import {TCData} from './TCData.js';
 

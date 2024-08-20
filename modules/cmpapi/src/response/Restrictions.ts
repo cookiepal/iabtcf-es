@@ -1,4 +1,4 @@
-import {RestrictionType} from '@iabtechlabtcf/core';
+import {RestrictionType} from '@cookiepal-labs/iabtcf-core';
 
 export interface Restrictions {
 
