@@ -2,7 +2,7 @@ import {Cloneable} from './Cloneable.js';
 import {GVLError} from './errors/index.js';
 import {Json} from './Json.js';
 import {ConsentLanguages, IntMap} from './model/index.js';
-import {ByPurposeVendorMap, Declarations, Feature, IDSetMap, Purpose, Stack, Vendor, VendorList, DataCategory, GvlCreationOptions} from './model/gvl/index.js';
+import {ByPurposeVendorMap, Declarations, Feature, IDSetMap, Purpose, Stack, GoogleVendor, Vendor, VendorList, DataCategory, GvlCreationOptions} from './model/gvl/index.js';
 import {DataRetention} from './model/gvl/DataRetention';
 import {VendorUrl} from './model/gvl/VendorUrl';
 
@@ -197,6 +197,18 @@ export class GVL extends Cloneable<GVL> implements VendorList {
    * @param {IntMap<Vendor>} a collection of [[Vendor]]. Used as a backup if a whitelist is sets
    */
   private fullVendorList: IntMap<Vendor>;
+
+  /**
+  * @param {IntMap<GoogleVendor>} a collection of [[GoogleVendor]]s
+  */
+  private googleVendors_: IntMap<GoogleVendor>;
+
+  public googleVendorIds: Set<number>;
+
+  /**
+  * @param {IntMap<GoogleVendor>} a collection of [[GoogleVendor]]. Used as a backup if a whitelist is sets
+  */
+  private fullGoogleVendorList: IntMap<GoogleVendor>;
 
   /**
    * @param {ByPurposeVendorMap} vendors by purpose
@@ -433,6 +445,7 @@ export class GVL extends Cloneable<GVL> implements VendorList {
       stacks: this.cloneStacks(),
       ...(this.dataCategories ? {dataCategories: this.cloneDataCategories()} : {}),
       vendors: this.cloneVendors(),
+      googleVendors: this.cloneGoogleVendors(),
     };
 
   }
@@ -628,6 +641,30 @@ export class GVL extends Cloneable<GVL> implements VendorList {
 
   }
 
+  private static cloneGoogleVendor(googleVendor: GoogleVendor): GoogleVendor {
+
+    return ({
+      id: googleVendor.id,
+      name: googleVendor.name,
+      privacy: googleVendor.privacy,
+    } as GoogleVendor);
+
+  }
+
+  private cloneGoogleVendors(): IntMap<GoogleVendor> {
+
+    const vendors = {};
+
+    for (const vendorId of Object.keys(this.fullGoogleVendorList)) {
+
+      vendors[vendorId] = GVL.cloneGoogleVendor(this.fullGoogleVendorList[vendorId]);
+
+    }
+
+    return vendors;
+
+  }
+
   /**
    * changeLanguage - retrieves the purpose language translation and sets the
    * internal language variable
@@ -741,7 +778,10 @@ export class GVL extends Cloneable<GVL> implements VendorList {
 
       this.vendors_ = gvlObject.vendors;
       this.fullVendorList = gvlObject.vendors;
+      this.googleVendors_ = gvlObject.googleVendors;
+      this.fullGoogleVendorList = gvlObject.googleVendors;
       this.mapVendors();
+      this.mapGoogleVendors();
       this.isReady_ = true;
 
       if (this.isLatest) {
@@ -880,6 +920,28 @@ export class GVL extends Cloneable<GVL> implements VendorList {
 
   }
 
+  private mapGoogleVendors(vendorIds?: number[]): void {
+
+    if (!Array.isArray(vendorIds)) {
+
+      vendorIds = Object.keys(this.fullGoogleVendorList).map(
+        (vId) => +vId,
+      );
+
+    }
+
+    this.googleVendors_ = vendorIds.reduce((vendors: {}, vendorId: number): {} => {
+
+      const vendor = this.googleVendors_[String(vendorId)];
+      if (vendor) vendors[vendorId] = vendor;
+      return vendors;
+
+    }, {});
+
+    this.googleVendorIds = new Set(vendorIds);
+
+  }
+
   private getFilteredVendors(
     purposeOrFeature: PurposeOrFeature,
     id: number,
@@ -1004,6 +1066,32 @@ export class GVL extends Cloneable<GVL> implements VendorList {
   public narrowVendorsTo(vendorIds: number[]): void {
 
     this.mapVendors(vendorIds);
+
+  }
+
+  /**
+  * googleVendors
+  *
+  * @return {IntMap<GoogleVendor>} - the list of google vendors as it would on the JSON file
+  * except if `narrowGoogleVendorsTo` was called, it would be that narrowed list
+  */
+
+  get googleVendors(): IntMap<GoogleVendor> {
+
+    return this.googleVendors_;
+
+  }
+
+  /**
+  * narrowGoogleVendorsTo - narrows google vendors represented in this GVL to the list of ids passed in
+  *
+  * @param {number[]} vendorIds - list of ids to narrow this GVL to
+  * @return {void}
+  */
+
+  public narrowGoogleVendorsTo(vendorIds: number[]): void {
+
+    this.mapGoogleVendors(vendorIds);
 
   }
 
