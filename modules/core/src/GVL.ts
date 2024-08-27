@@ -203,7 +203,7 @@ export class GVL extends Cloneable<GVL> implements VendorList {
   */
   private googleVendors_: IntMap<GoogleVendor>;
 
-  public googleVendorIds: Set<number>;
+  public googleVendorIds: Set<string>;
 
   /**
   * @param {IntMap<GoogleVendor>} a collection of [[GoogleVendor]]. Used as a backup if a whitelist is sets
@@ -938,7 +938,7 @@ export class GVL extends Cloneable<GVL> implements VendorList {
 
     }, {});
 
-    this.googleVendorIds = new Set(vendorIds);
+    this.googleVendorIds = new Set(Object.keys(this.googleVendors_));
 
   }
 
